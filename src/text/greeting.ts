@@ -1,20 +1,33 @@
-import { Telegraf } from 'telegraf';
-import dotenv from 'dotenv';
+import { Context } from 'telegraf';
+import createDebug from 'debug';
 
-dotenv.config(); // Carrega variáveis de ambiente do arquivo .env
+const debug = createDebug('bot:greeting_text');
 
-const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN); // Usa a variável de ambiente
+const replyToMessage = (ctx: Context, messageId: number, string: string) =>
+  ctx.reply(string, {
+    reply_to_message_id: messageId, // Corrigido para 'reply_to_message_id'
+  });
 
-// Exemplo de comando para responder com um cumprimento
-bot.start((ctx) => ctx.reply('Bem-vindo! Como posso ajudar?'));
+// Função de saudação
+const greeting = () => async (ctx: Context) => {
+  debug('Triggered "greeting" text command');
 
-// Exemplo de comando de saudação
-const greeting = () => async (ctx) => {
-    const userName = `${ctx.message?.from.first_name} ${ctx.message?.from.last_name}`;
-    await ctx.reply(`Olá, ${userName}!`);
+  const messageId = ctx.message?.message_id;
+  const userName = `${ctx.message?.from.first_name} ${ctx.message?.from.last_name}`;
+
+  if (messageId) {
+    await replyToMessage(ctx, messageId, `Hello, ${userName}!`);
+  }
 };
 
-bot.on('text', greeting()); // Responde a mensagens de texto
+// Função para lidar com mensagens de texto
+const handleTextMessages = () => async (ctx: Context) => {
+  const messageText = ctx.message.text.toLowerCase(); // Converte a mensagem para minúsculas
 
-// Inicia o bot
-bot.launch();
+  if (messageText === 'oi') {
+    await ctx.reply('Como posso ajudar?'); // Responde com "Como posso ajudar?"
+  }
+};
+
+// Exporta as funções
+export { greeting, handleTextMessages };
