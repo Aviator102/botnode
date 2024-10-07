@@ -1,22 +1,20 @@
-import { Context } from 'telegraf';
-import createDebug from 'debug';
+import { Telegraf } from 'telegraf';
+import dotenv from 'dotenv';
 
-const debug = createDebug('bot:greeting_text');
+dotenv.config(); // Carrega variáveis de ambiente do arquivo .env
 
-const replyToMessage = (ctx: Context, messageId: number, string: string) =>
-  ctx.reply(string, {
-    reply_parameters: { message_id: messageId },
-  });
+const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN); // Usa a variável de ambiente
 
-const greeting = () => async (ctx: Context) => {
-  debug('Triggered "greeting" text command');
+// Exemplo de comando para responder com um cumprimento
+bot.start((ctx) => ctx.reply('Bem-vindo! Como posso ajudar?'));
 
-  const messageId = ctx.message?.message_id;
-  const userName = `${ctx.message?.from.first_name} ${ctx.message?.from.last_name}`;
-
-  if (messageId) {
-    await replyToMessage(ctx, messageId, `Hello, ${userName}!`);
-  }
+// Exemplo de comando de saudação
+const greeting = () => async (ctx) => {
+    const userName = `${ctx.message?.from.first_name} ${ctx.message?.from.last_name}`;
+    await ctx.reply(`Olá, ${userName}!`);
 };
 
-export { greeting };
+bot.on('text', greeting()); // Responde a mensagens de texto
+
+// Inicia o bot
+bot.launch();
